@@ -29,6 +29,9 @@ export default function ModelViewer({ modelPath }) {
           minDistance={1}
           maxDistance={6}
           autoRotate={false}
+          enableDamping={true}
+          dampingFactor={0.05}
+          rotateSpeed={0.5}
         />
       </Canvas>
     </div>

@@ -12,52 +12,41 @@ import * as THREE from "three";
 const SPECS = {
   puffer: {
     hem: -2.0,
-    depth: 0.34,
-    bevel: 0.09,
+    depth: 0.42,
+    bevel: 0.12,
     rough: 0.45,
     half: [
-      [0.3, 0.4],
-      [0.62, 0.34],
-      [0.95, 0.1],
-      [1.25, -0.6],
-      [1.55, -1.4],
-      [1.2, -1.52],
-      [0.84, -0.5],
-      [0.8, -1.1],
-      [0.84, -1.75],
+      [0.3, 0.4],    // neck
+      [0.72, 0.34],  // shoulder
+      [0.85, 0.0],   // underarm
+      [0.82, -1.1],  // waist
+      [0.85, -2.0],  // hem
     ],
   },
   coat: {
     hem: -2.8,
-    depth: 0.2,
-    bevel: 0.045,
+    depth: 0.24,
+    bevel: 0.06,
     rough: 0.95,
     half: [
       [0.28, 0.38],
-      [0.7, 0.3],
-      [1.0, 0.12],
-      [1.15, -0.6],
-      [1.28, -1.7],
-      [1.04, -1.76],
-      [0.8, -0.55],
-      [0.76, -1.4],
-      [0.9, -2.6],
+      [0.75, 0.32],
+      [0.8, -0.1],
+      [0.78, -1.4],
+      [0.85, -2.8],
     ],
   },
   knit: {
     hem: -1.75,
-    depth: 0.24,
-    bevel: 0.06,
+    depth: 0.28,
+    bevel: 0.08,
     rough: 1,
     half: [
       [0.28, 0.38],
-      [0.65, 0.3],
-      [0.98, 0.08],
-      [1.12, -0.7],
-      [1.28, -1.55],
-      [1.0, -1.62],
-      [0.76, -0.5],
-      [0.74, -1.55],
+      [0.7, 0.32],
+      [0.75, -0.1],
+      [0.72, -1.0],
+      [0.75, -1.75],
     ],
   },
 };
@@ -92,6 +81,39 @@ function TextileFiber({ color, seed }) {
     <mesh geometry={tube}>
       <meshBasicMaterial color={color} transparent opacity={0.15} />
     </mesh>
+  );
+}
+
+function Sleeve({ side, type, color, dark, spec }) {
+  const isPuffer = type === "puffer";
+  const isCoat = type === "coat";
+  const length = isCoat ? 2.3 : isPuffer ? 1.8 : 1.65;
+  const radius = isPuffer ? 0.32 : isCoat ? 0.22 : 0.24;
+  const px = side * (isPuffer ? 0.8 : isCoat ? 0.72 : 0.68);
+  const py = 0.05;
+  const rz = side * (isPuffer ? 0.22 : 0.15);
+
+  return (
+    <group position={[px, py, 0]} rotation={[0, 0, rz]}>
+      <mesh position={[0, -length / 2, 0]}>
+        <cylinderGeometry args={[radius, radius * 0.85, length, 20]} />
+        <meshStandardMaterial color={color} roughness={spec.rough} metalness={isPuffer ? 0.08 : 0} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[radius, 20, 16]} />
+        <meshStandardMaterial color={color} roughness={spec.rough} />
+      </mesh>
+      {isPuffer && [-0.4, -0.9, -1.4].map((y) => (
+        <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[radius + 0.01, 0.02, 12, 24]} />
+          <meshStandardMaterial color={dark} roughness={0.7} />
+        </mesh>
+      ))}
+      <mesh position={[0, -length, 0]}>
+        <cylinderGeometry args={[radius * 0.88, radius * 0.8, 0.12, 20]} />
+        <meshStandardMaterial color={dark} roughness={1} />
+      </mesh>
+    </group>
   );
 }
 
@@ -135,6 +157,9 @@ function Garment({ type, color }) {
         <sphereGeometry args={[1, 24, 16]} />
         <meshStandardMaterial color={dark} roughness={1} />
       </mesh>
+
+      <Sleeve side={1} type={type} color={color} dark={dark} spec={spec} />
+      <Sleeve side={-1} type={type} color={color} dark={dark} spec={spec} />
 
       {type === "puffer" && (
         <>
@@ -275,31 +300,30 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
   const shadowMat = useRef();
   const keyLight = useRef();
 
+  // Set initial pose on pivot once when component mounts or tilt changes
+  useEffect(() => {
+    if (pivot.current) {
+      pivot.current.rotation.z = tilt;
+      pivot.current.rotation.y = -tilt * 2.2;
+      pivot.current.position.y = PIVOT_Y;
+    }
+  }, [tilt]);
+
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05);
-    const t = state.clock.elapsedTime;
     const P = pivot.current;
     if (!P) return;
 
-    const floatY = Math.sin(t * 0.6 + seed) * 0.1;
-    const sway = Math.sin(t * 0.8 + seed) * 0.03;
-    const targetZ = active ? Math.sin(t * 1.2 + seed) * 0.008 : tilt + sway;
-    const targetYaw = active ? t * 0.3 : -tilt * 2.2 + sway * 2;
-    const targetScale = active ? 1.08 : 1;
-
-    P.rotation.z = damp(P.rotation.z, targetZ, 3.2, dt);
-    P.rotation.y = damp(P.rotation.y, targetYaw, 3.2, dt);
-    P.position.y = damp(P.position.y, PIVOT_Y + floatY, 3.5, dt);
-    const s = damp(P.scale.x, targetScale, 3.5, dt);
-    P.scale.set(s, s, s);
-
     const S = shadowPivot.current;
-    S.rotation.z = P.rotation.z;
-    S.scale.set(Math.max(0.55, Math.abs(Math.cos(P.rotation.y))) * s, s, 1);
-    S.position.y = P.position.y - 1.8;
-    shadowMat.current.opacity = shadowBase;
+    if (S && shadowMat.current) {
+      S.rotation.z = P.rotation.z;
+      S.position.y = P.position.y - 1.8;
+      shadowMat.current.opacity = shadowBase;
+    }
 
-    keyLight.current.intensity = damp(keyLight.current.intensity, active ? 2.8 : 2.0, 3, dt);
+    if (keyLight.current) {
+      keyLight.current.intensity = damp(keyLight.current.intensity, active ? 2.8 : 2.0, 3, dt);
+    }
   });
 
   return (
@@ -314,6 +338,11 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
           minDistance={3}
           maxDistance={12}
           autoRotate={false}
+          enableDamping={true}
+          dampingFactor={0.05}
+          rotateSpeed={0.5}
+          minPolarAngle={Math.PI / 4}
+          maxPolarAngle={Math.PI - Math.PI / 4}
         />
       )}
 
@@ -321,7 +350,7 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
         <Sparkles count={50} scale={[6, 6, 3]} position={[0, cy, 0.5]} size={2} speed={0.2} opacity={0.6} color="#ffffff" />
       )}
 
-      <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+      <Float speed={0} rotationIntensity={0} floatIntensity={0}>
         <TextileFiber color={color} seed={seed} />
         <TextileFiber color="#ffffff" seed={seed + 10} />
       </Float>
@@ -342,7 +371,7 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
 
 const CAMERA_Z = { puffer: 8.5, coat: 8.0, knit: 7.5 };
 
-export default function HangingGarment({ type = "puffer", color = "#cbbfae", tilt = -0.2, active = false, seed = 0, snow = false, zoomOut = 1, model = null, enableControls = false }) {
+export default function HangingGarment({ type = "puffer", color = "#cbbfae", tilt = -0.2, active = false, seed = 0, snow = false, zoomOut = 1, model = null, enableControls = true }) {
   const bottom = model ? model.bottom : SPECS[type].hem;
   const cy = 0;
   const camZ = model

@@ -99,7 +99,7 @@ function ProductPage({ id }) {
                 />
               </Suspense>
               <p className="pointer-events-none absolute bottom-4 left-0 right-0 text-center text-[9px] tracking-[3px] text-[#77736a]">
-                HOVER OR TAP TO STRAIGHTEN
+                DRAG TO ROTATE
               </p>
             </div>
 

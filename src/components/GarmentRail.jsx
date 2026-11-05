@@ -29,7 +29,7 @@ function RailItem({ item, index, activeIdx, onHover, onPick }) {
     outer.current.position.x = damp(outer.current.position.x, tx, 5, dt);
     outer.current.position.z = damp(outer.current.position.z, active ? 1.2 : 0, 4, dt);
 
-    const yaw = active ? t * 0.3 : 0.95 + Math.sin(seed) * 0.08;
+    const yaw = 0.95;
     pivot.current.rotation.y = damp(pivot.current.rotation.y, yaw, 4, dt);
   });
 
