@@ -16,11 +16,11 @@ const SPECS = {
     bevel: 0.12,
     rough: 0.45,
     half: [
-      [0.3, 0.4],    // neck
-      [0.72, 0.34],  // shoulder
-      [0.85, 0.0],   // underarm
-      [0.82, -1.1],  // waist
-      [0.85, -2.0],  // hem
+      [0.3, 0.4], // neck
+      [0.72, 0.34], // shoulder
+      [0.85, 0.0], // underarm
+      [0.82, -1.1], // waist
+      [0.85, -2.0], // hem
     ],
   },
   coat: {
@@ -70,12 +70,21 @@ function TextileFiber({ color, seed }) {
     for (let i = 0; i < 40; i++) {
       const angle = (i / 40) * Math.PI * 2;
       const r = 1.8 + Math.sin(i * 0.5 + seed) * 0.4;
-      pts.push(new THREE.Vector3(Math.cos(angle) * r, Math.sin(angle) * r, Math.sin(i * 0.2) * 0.5));
+      pts.push(
+        new THREE.Vector3(
+          Math.cos(angle) * r,
+          Math.sin(angle) * r,
+          Math.sin(i * 0.2) * 0.5,
+        ),
+      );
     }
     return new THREE.CatmullRomCurve3(pts, true);
   }, [seed]);
 
-  const tube = useMemo(() => new THREE.TubeGeometry(points, 64, 0.003, 8, true), [points]);
+  const tube = useMemo(
+    () => new THREE.TubeGeometry(points, 64, 0.003, 8, true),
+    [points],
+  );
 
   return (
     <mesh geometry={tube}>
@@ -97,18 +106,23 @@ function Sleeve({ side, type, color, dark, spec }) {
     <group position={[px, py, 0]} rotation={[0, 0, rz]}>
       <mesh position={[0, -length / 2, 0]}>
         <cylinderGeometry args={[radius, radius * 0.85, length, 20]} />
-        <meshStandardMaterial color={color} roughness={spec.rough} metalness={isPuffer ? 0.08 : 0} />
+        <meshStandardMaterial
+          color={color}
+          roughness={spec.rough}
+          metalness={isPuffer ? 0.08 : 0}
+        />
       </mesh>
       <mesh>
         <sphereGeometry args={[radius, 20, 16]} />
         <meshStandardMaterial color={color} roughness={spec.rough} />
       </mesh>
-      {isPuffer && [-0.4, -0.9, -1.4].map((y) => (
-        <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[radius + 0.01, 0.02, 12, 24]} />
-          <meshStandardMaterial color={dark} roughness={0.7} />
-        </mesh>
-      ))}
+      {isPuffer &&
+        [-0.4, -0.9, -1.4].map((y) => (
+          <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[radius + 0.01, 0.02, 12, 24]} />
+            <meshStandardMaterial color={dark} roughness={0.7} />
+          </mesh>
+        ))}
       <mesh position={[0, -length, 0]}>
         <cylinderGeometry args={[radius * 0.88, radius * 0.8, 0.12, 20]} />
         <meshStandardMaterial color={dark} roughness={1} />
@@ -143,17 +157,27 @@ function Garment({ type, color }) {
     [geo, shadowGeo],
   );
 
-  const dark = useMemo(() => new THREE.Color(color).multiplyScalar(0.7), [color]);
+  const dark = useMemo(
+    () => new THREE.Color(color).multiplyScalar(0.7),
+    [color],
+  );
   const front = spec.depth / 2 + spec.bevel * 0.8 + 0.004;
   const bodyHalf = spec.half[spec.half.length - 1][0];
 
   return (
     <group>
       <mesh geometry={geo}>
-        <meshStandardMaterial color={color} roughness={spec.rough} metalness={type === "puffer" ? 0.08 : 0} />
+        <meshStandardMaterial
+          color={color}
+          roughness={spec.rough}
+          metalness={type === "puffer" ? 0.08 : 0}
+        />
       </mesh>
 
-      <mesh position={[0, 0.33, 0]} scale={type === "coat" ? [0.36, 0.15, 0.17] : [0.42, 0.17, 0.25]}>
+      <mesh
+        position={[0, 0.33, 0]}
+        scale={type === "coat" ? [0.36, 0.15, 0.17] : [0.42, 0.17, 0.25]}
+      >
         <sphereGeometry args={[1, 24, 16]} />
         <meshStandardMaterial color={dark} roughness={1} />
       </mesh>
@@ -171,7 +195,11 @@ function Garment({ type, color }) {
           ))}
           <mesh position={[0, (0.2 + spec.hem) / 2, front + 0.004]}>
             <boxGeometry args={[0.03, Math.abs(spec.hem - 0.2), 0.012]} />
-            <meshStandardMaterial color="#8f8f8f" metalness={0.8} roughness={0.35} />
+            <meshStandardMaterial
+              color="#8f8f8f"
+              metalness={0.8}
+              roughness={0.35}
+            />
           </mesh>
         </>
       )}
@@ -189,7 +217,11 @@ function Garment({ type, color }) {
                   ]),
                 ]}
               />
-              <meshStandardMaterial color={dark} roughness={1} side={THREE.DoubleSide} />
+              <meshStandardMaterial
+                color={dark}
+                roughness={1}
+                side={THREE.DoubleSide}
+              />
             </mesh>
           ))}
         </>
@@ -197,7 +229,13 @@ function Garment({ type, color }) {
 
       {type === "knit" && (
         <mesh position={[0, spec.hem + 0.13, 0]}>
-          <boxGeometry args={[bodyHalf * 2 + spec.bevel * 2 + 0.04, 0.26, spec.depth + spec.bevel * 1.6 + 0.04]} />
+          <boxGeometry
+            args={[
+              bodyHalf * 2 + spec.bevel * 2 + 0.04,
+              0.26,
+              spec.depth + spec.bevel * 1.6 + 0.04,
+            ]}
+          />
           <meshStandardMaterial color={dark} roughness={1} />
         </mesh>
       )}
@@ -279,7 +317,17 @@ export function GarmentSwitch({ type, color, model }) {
 const PIVOT_Y = 0;
 const damp = THREE.MathUtils.damp;
 
-function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControls }) {
+function Scene({
+  type,
+  color,
+  tilt,
+  active,
+  seed,
+  snow,
+  cy,
+  model,
+  enableControls,
+}) {
   const shadowBase = 0.12;
   const blobTex = useMemo(() => {
     const cv = document.createElement("canvas");
@@ -322,7 +370,12 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
     }
 
     if (keyLight.current) {
-      keyLight.current.intensity = damp(keyLight.current.intensity, active ? 2.8 : 2.0, 3, dt);
+      keyLight.current.intensity = damp(
+        keyLight.current.intensity,
+        active ? 2.8 : 2.0,
+        3,
+        dt,
+      );
     }
   });
 
@@ -347,7 +400,15 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
       )}
 
       {snow && (
-        <Sparkles count={50} scale={[6, 6, 3]} position={[0, cy, 0.5]} size={2} speed={0.2} opacity={0.6} color="#ffffff" />
+        <Sparkles
+          count={50}
+          scale={[6, 6, 3]}
+          position={[0, cy, 0.5]}
+          size={2}
+          speed={0.2}
+          opacity={0.6}
+          color="#ffffff"
+        />
       )}
 
       <Float speed={0} rotationIntensity={0} floatIntensity={0}>
@@ -358,7 +419,14 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
       <group ref={shadowPivot} position={[0.16, 0, -1.2]}>
         <mesh>
           <planeGeometry args={[4, 4]} />
-          <meshBasicMaterial ref={shadowMat} map={blobTex} color="#292824" transparent opacity={shadowBase} depthWrite={false} />
+          <meshBasicMaterial
+            ref={shadowMat}
+            map={blobTex}
+            color="#292824"
+            transparent
+            opacity={shadowBase}
+            depthWrite={false}
+          />
         </mesh>
       </group>
 
@@ -371,12 +439,20 @@ function Scene({ type, color, tilt, active, seed, snow, cy, model, enableControl
 
 const CAMERA_Z = { puffer: 8.5, coat: 8.0, knit: 7.5 };
 
-export default function HangingGarment({ type = "puffer", color = "#cbbfae", tilt = -0.2, active = false, seed = 0, snow = false, zoomOut = 1, model = null, enableControls = true }) {
-  const bottom = model ? model.bottom : SPECS[type].hem;
+export default function HangingGarment({
+  type = "puffer",
+  color = "#cbbfae",
+  tilt = -0.2,
+  active = false,
+  seed = 0,
+  snow = false,
+  zoomOut = 1,
+  model = null,
+  enableControls = true,
+}) {
+  // const bottom = model ? model.bottom : SPECS[type].hem;
   const cy = 0;
-  const camZ = model
-    ? 7.5 * zoomOut
-    : CAMERA_Z[type] * zoomOut;
+  const camZ = model ? 7.5 * zoomOut : CAMERA_Z[type] * zoomOut;
 
   return (
     <Canvas
@@ -386,9 +462,19 @@ export default function HangingGarment({ type = "puffer", color = "#cbbfae", til
       gl={{ alpha: true, antialias: true }}
       onCreated={({ camera }) => camera.lookAt(0, 0, 0)}
     >
-      <Scene type={type} color={color} tilt={tilt} active={active} seed={seed} snow={snow} cy={cy} model={model} enableControls={enableControls} />
+      <Scene
+        type={type}
+        color={color}
+        tilt={tilt}
+        active={active}
+        seed={seed}
+        snow={snow}
+        cy={cy}
+        model={model}
+        enableControls={enableControls}
+      />
     </Canvas>
   );
 }
 
-export { SPECS, Garment };
+// export { SPECS, Garment };

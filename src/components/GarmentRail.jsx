@@ -12,13 +12,14 @@ function RailItem({ item, index, activeIdx, onHover, onPick }) {
   const outer = useRef();
   const pivot = useRef();
   const active = activeIdx === index;
-  const seed = index * 1.37;
+  // const seed = index * 1.37;
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05);
-    const t = state.clock.elapsedTime;
+    // const t = state.clock.elapsedTime;
     const d = activeIdx == null ? 0 : index - activeIdx;
-    const shift = d === 0 ? 0 : Math.sign(d) * 0.5 * Math.max(0, 1 - (Math.abs(d) - 1) / 3);
+    const shift =
+      d === 0 ? 0 : Math.sign(d) * 0.5 * Math.max(0, 1 - (Math.abs(d) - 1) / 3);
 
     const zNow = outer.current.position.z;
     const k = CAM_Z / (CAM_Z - zNow);
@@ -27,7 +28,12 @@ function RailItem({ item, index, activeIdx, onHover, onPick }) {
     if (active) tx = (railX + tx) / k - railX;
 
     outer.current.position.x = damp(outer.current.position.x, tx, 5, dt);
-    outer.current.position.z = damp(outer.current.position.z, active ? 1.2 : 0, 4, dt);
+    outer.current.position.z = damp(
+      outer.current.position.z,
+      active ? 1.2 : 0,
+      4,
+      dt,
+    );
 
     const yaw = 0.95;
     pivot.current.rotation.y = damp(pivot.current.rotation.y, yaw, 4, dt);
@@ -73,7 +79,12 @@ function Rail({ items, activeIdx, onHover, onPick, scrollRef, metaRef }) {
   }, [viewW, maxScroll, metaRef, scrollRef]);
 
   useFrame((_, delta) => {
-    smooth.current = damp(smooth.current, scrollRef.current, 5, Math.min(delta, 0.05));
+    smooth.current = damp(
+      smooth.current,
+      scrollRef.current,
+      5,
+      Math.min(delta, 0.05),
+    );
     railRef.current.position.x = startX - smooth.current;
   });
 
@@ -85,14 +96,29 @@ function Rail({ items, activeIdx, onHover, onPick, scrollRef, metaRef }) {
 
       <group ref={railRef} position={[startX, 0, 0]}>
         {items.map((item, i) => (
-          <RailItem key={item.id} item={item} index={i} activeIdx={activeIdx} onHover={onHover} onPick={onPick} />
+          <RailItem
+            key={item.id}
+            item={item}
+            index={i}
+            activeIdx={activeIdx}
+            onHover={onHover}
+            onPick={onPick}
+          />
         ))}
       </group>
     </>
   );
 }
 
-export default function GarmentRail({ items, activeIdx, onHover, onPick, onMiss, scrollRef, metaRef }) {
+export default function GarmentRail({
+  items,
+  activeIdx,
+  onHover,
+  onPick,
+  onMiss,
+  scrollRef,
+  metaRef,
+}) {
   return (
     <Canvas
       flat
@@ -101,7 +127,14 @@ export default function GarmentRail({ items, activeIdx, onHover, onPick, onMiss,
       gl={{ alpha: true, antialias: true }}
       onPointerMissed={onMiss}
     >
-      <Rail items={items} activeIdx={activeIdx} onHover={onHover} onPick={onPick} scrollRef={scrollRef} metaRef={metaRef} />
+      <Rail
+        items={items}
+        activeIdx={activeIdx}
+        onHover={onHover}
+        onPick={onPick}
+        scrollRef={scrollRef}
+        metaRef={metaRef}
+      />
     </Canvas>
   );
 }
